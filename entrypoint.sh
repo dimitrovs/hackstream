@@ -15,7 +15,14 @@ echo "Starting Xvfb on display ${DISPLAY}"
 # +extension RANDR: Enables the RANDR extension for display resizing.
 # The process is backgrounded with '&'.
 Xvfb ${DISPLAY} -screen 0 1920x1080x24 &
+XVFB_PID=$!
 
+# Setup trap to ensure Xvfb is killed on exit or signal
+cleanup() {
+    echo "Stopping Xvfb (PID $XVFB_PID)"
+    kill $XVFB_PID 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
 # Wait a moment for Xvfb to initialize.
 sleep 2
 
