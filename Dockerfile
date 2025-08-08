@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xauth \
     chromium \
     pulseaudio \
+    dbus-x11 \
+    python3-paramiko \
+    python3-uinput \
     fonts-noto-color-emoji \
     fonts-liberation \
     ttf-bitstream-vera \
@@ -29,7 +32,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Create a non-root user to run the application for better security
 # The architecture doc specifies a "non-root with dedicated home directory"
-RUN useradd --create-home --shell /bin/bash appuser
+RUN useradd --create-home --shell /bin/bash appuser && \
+    mkdir -p /home/appuser/.xdg_runtime_dir && \
+    chown -R appuser:appuser /home/appuser/.xdg_runtime_dir
 
 # Set the working directory to the user's home
 WORKDIR /home/appuser
