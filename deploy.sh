@@ -5,7 +5,7 @@ set -e # exit if any command fails
 # Set the remote user and host IP address.
 # IMPORTANT: Ensure you have set up SSH key-based authentication for this user.
 # For example, run: ssh-copy-id user@192.168.1.83
-REMOTE_USER="user"
+REMOTE_USER="stefan"
 REMOTE_HOST_IP="192.168.1.83"
 
 # Set the remote directory where the project will be deployed.
