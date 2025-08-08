@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  hackstream:
+    build: .
+    container_name: hackstream
+    ports:
+      - "14500:14500"
+    restart: unless-stopped
