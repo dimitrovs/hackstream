@@ -47,4 +47,4 @@ USER appuser
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Default command can be overridden, e.g., to launch a different app
-CMD ["/usr/bin/chromium", "--no-sandbox", "--disable-gpu"]
+CMD ["/usr/bin/chromium", "--disable-gpu"]
