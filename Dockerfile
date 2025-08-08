@@ -1,18 +1,18 @@
-# P0-1: As an engineer, I can build a Docker image that starts xpra and launches Chrome reliably.
-# AC: Image builds on the target host; entrypoint starts xpra server and Chrome; readiness observable.
+# P0-1: As an engineer, I can build a Docker image that starts xpra and launches Firefox reliably.
+# AC: Image builds on the target host; entrypoint starts xpra server and Firefox; readiness observable.
 
 # Use a stable, slim base image
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 # Set environment variables to prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies from the standard Debian repository.
-# For this prototype, the version of xpra in bullseye is sufficient.
+# For this prototype, the version of xpra in bookworm is sufficient.
 # - sudo: to allow user to run commands as root if needed
 # - xvfb: X Virtual Framebuffer for running GUI apps in a headless environment
 # - xpra: the core streaming server
-# - chromium: the browser we want to run
+# - firefox-esr: the Firefox browser we want to run
 # - pulseaudio: for audio support
 # - fonts-*, ttf-*: essential fonts to render web pages correctly
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -20,11 +20,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
     xpra \
     xauth \
-    chromium \
+    firefox-esr \
     pulseaudio \
     dbus-x11 \
     python3-paramiko \
     python3-uinput \
+    python3-dbus \
+    python3-pyinotify \
+    python3-xdg \
+    python3-pil \
+    lz4 \
     fonts-noto-color-emoji \
     fonts-liberation \
     ttf-bitstream-vera \
@@ -52,4 +57,4 @@ USER appuser
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Default command can be overridden, e.g., to launch a different app
-CMD ["/usr/bin/chromium", "--disable-gpu"]
+CMD ["firefox-esr"]
