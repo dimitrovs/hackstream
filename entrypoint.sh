@@ -34,5 +34,4 @@ exec xpra start ${DISPLAY} \
     --speaker=no \
     --clipboard=yes \
     --exit-with-children \
-    --no-input-devices \
     --start-child="$*"
