@@ -1,6 +1,6 @@
 # HackStream Architecture and Iterative Delivery Plan
 
-Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberry Pi Zero) to run heavyweight desktop applications remotely. The first use case is a remote browser session (Google Chrome / WebKitGTK) streamed over a low-latency protocol to the client.
+Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberry Pi Zero) to run heavyweight desktop applications remotely. The first use case is a remote browser session (Firefox browser) streamed over a low-latency protocol to the client.
 
 ## Goals
 
@@ -46,7 +46,7 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 ### 2) Stream Workers (Dockerized session)
 
-- Base image: Linux (e.g., Ubuntu), xpra, Xorg/Xvfb or Wayland, PulseAudio/PipeWire, Chrome/Chromium (or WebKitGTK), fonts/codecs.
+- Base image: Linux (e.g., Ubuntu), xpra, Xorg/Xvfb or Wayland, PulseAudio/PipeWire, Firefox browser, fonts/codecs.
 - xpra configuration:
   - TLS enabled; h264 (nvenc/vaapi if available), fallback to vp9/vpx; webp for stills.
   - Adaptive bitrate/quality; zstd/lz4 for pixels/control streams.
@@ -65,7 +65,7 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 - Packaging: Debian/Ubuntu .deb distributed via apt repository; installs both a CLI and a lightweight GUI wrapper.
 - Desktop integration: Installs a `.desktop` entry and icon so HackStream appears in the launcher.
 - First-run GUI login: On initial launch, a small window prompts for server URL and username/password; credentials exchanged for a session token and saved under `~/.config/hackstream/config`.
-- Launch flow: After login, the GUI shows a "Launch Browser" action (and optional URL field). Clicking it requests a session and spawns the xpra client to attach, presenting the remote Chrome window on the user’s desktop.
+- Launch flow: After login, the GUI shows a "Launch Browser" action (and optional URL field). Clicking it requests a session and spawns the xpra client to attach, presenting the remote Firefox window on the user’s desktop.
 - Subsequent launches: If already configured/logged-in, opening the launcher can connect directly or show the simple launcher UI with recent URLs.
 - CLI remains available for headless usage:
   - `hackstream launch browser --url <url> --profile ephemeral|persist --quality auto|low|high`
@@ -77,7 +77,7 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 ## Session Lifecycle
 
 1. Login: Client authenticates with username/password via `/v1/login` (GUI prompts on first run or if expired); receives a control-plane token stored locally.
-2. Launch: Client calls `/sessions` with app=chrome, profile, URL, and quality settings.
+2. Launch: Client calls `/sessions` with app=Firefox, profile, URL, and quality settings.
 3. Provision: Scheduler starts container; xpra server boots; one-time TLS cert/key and session token created.
 4. Connect: API returns `host`, `port`, `SNI`, `token`; client attaches via xpra.
 5. Stream: Adaptive codec/bitrate; stats surfaced to metrics.
@@ -125,19 +125,19 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 - `GET /v1/me`, `GET /v1/quotas`
 - Admin: `POST /v1/users`, `PATCH /v1/users/{id}`, `GET /v1/metrics`
 
-## Container Image Outline (Chrome + xpra)
+## Container Image Outline (Firefox + xpra)
 
-- Packages: xpra, Xorg/Xvfb or Wayland compositor, PulseAudio/PipeWire, Chrome/Chromium/WebKitGTK, fonts, codecs.
+- Packages: xpra, Xorg/Xvfb or Wayland compositor, PulseAudio/PipeWire, Firefox browser, fonts, codecs.
 - Runtime user: non-root with dedicated home directory.
 - Entry point:
   - Start xpra server with TLS and desired encoders.
-  - Launch Chrome on attach or eager start with remote control script.
+  - Launch Firefox on attach or eager start with remote control script.
   - Health/readiness endpoint exposing xpra status.
 
 ### Example runtime flags
 
 - xpra: `start :100 --bind-tcp=0.0.0.0:PORT --tcp-encryption=tls --ssl-cert=/run/certs/cert.pem --ssl-key=/run/certs/key.pem --video-encoders=h264,vaapi,vpx --compress=zstd --clipboard=yes`
-- Chrome: `google-chrome --incognito --no-first-run --disable-gpu --force-device-scale-factor=1.0`
+- Firefox: `Firefox` (minimal configuration needed for containerized environment)
 - GPU nodes: enable VAAPI/NVENC and pass-through `/dev/dri`.
 
 ## Non-functional Requirements
@@ -151,7 +151,7 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 - Single-node server using Docker.
 - Basic API with OIDC device flow and local accounts (username/password).
-- Per-session container running xpra + Chrome (Chromium acceptable for licensing).
+- Per-session container running xpra + Firefox (browser optimized for containerized environments).
 - TLS via Traefik; one-time session tokens; idle timeout; simple quotas; audit logs.
 - Go CLI wrapper to login, launch, attach, list, and stop sessions.
 - Desktop GUI wrapper for simplified login and session launching.
@@ -190,9 +190,9 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 ## Milestones
 
-- P0: Feasibility Prototype (Unauthenticated single-session streaming; xpra+Chrome container; Raspberry Pi client proves decode/interaction on low memory.)
+- P0: Feasibility Prototype (Unauthenticated single-session streaming; xpra+Firefox container; Raspberry Pi client proves decode/interaction on low memory.)
 - M0: Project scaffolding, CI, base image build.
-- M1 (MVP Core): Local username/password auth, session creation, single-node scheduler, xpra+Chrome container, CLI launch/connect, TLS ingress, quotas, idle timeout, audit.
+- M1 (MVP Core): Local username/password auth, session creation, single-node scheduler, xpra+Firefox container, CLI launch/connect, TLS ingress, quotas, idle timeout, audit.
 - M2: Observability, admin ops, robustness (retries, autoreconnect), packaging.
 - M3+: Persistent profiles, GPU, multi-node, optional OIDC and 2FA, accelerator, UI dashboard.
 
@@ -200,12 +200,12 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 ### Prototype P0: Feasibility (Unauthenticated, single-user path)
 
-- Story P0-1: As an engineer, I can build a Docker image that starts xpra and launches Chrome reliably.
-  - AC: Image builds on the target host; entrypoint starts xpra server and Chrome; readiness observable.
-    - **Current State**: A `Dockerfile` and `entrypoint.sh` script have been implemented to achieve this. The Dockerfile installs necessary dependencies (e.g., xpra, Chromium, Xvfb) and sets up a non-root user. The entrypoint script starts Xvfb, launches xpra, and runs the specified application (e.g., Chromium).
+- Story P0-1: As an engineer, I can build a Docker image that starts xpra and launches Firefox reliably.
+  - AC: Image builds on the target host; entrypoint starts xpra server and Firefox; readiness observable.
+    - **Current State**: A `Dockerfile` and `entrypoint.sh` script have been implemented to achieve this. The Dockerfile installs necessary dependencies (e.g., xpra, Firefox, Xvfb) and sets up a non-root user. The entrypoint script starts Xvfb, launches xpra, and runs the specified application (e.g., Firefox).
 - Story P0-2: As an operator, I can run one container and expose a connection endpoint on the LAN.
   - AC: Container starts on a single server; xpra is reachable within the local network.
-- Story P0-3: As a Raspberry Pi user, I can attach with xpra and load a test URL in Chrome.
+- Story P0-3: As a Raspberry Pi user, I can attach with xpra and load a test URL in Firefox.
   - AC: Pi Zero attaches, renders a test page, and basic interactions (type, scroll, click) are responsive.
 - Story P0-4: As a team, we have a short runbook describing server bring-up and Pi client attachment.
   - AC: Steps documented; no authentication required; warning that it’s for trusted LAN testing only.
@@ -250,8 +250,8 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 ### Epic 4: Client App & CLI
 
 - Story L0 (MVP): As a desktop user, I install via apt and see a HackStream icon; launching it shows a login if needed and a button to start a browser session.
-  - AC: Package installs a `.desktop` entry and icon; first-run GUI prompts for server URL and username/password; after login, "Launch Browser" opens a remote Chrome window.
-- Story L1 (MVP): As a user, I can launch Chrome to a specific URL.
+  - AC: Package installs a `.desktop` entry and icon; first-run GUI prompts for server URL and username/password; after login, "Launch Browser" opens a remote Firefox window.
+- Story L1 (MVP): As a user, I can launch Firefox to a specific URL.
   - AC: `hackstream launch browser --url https://example.com` opens in remote session; prompts for config if missing.
 - Story L2 (MVP): As a user, I can list and stop my sessions.
   - AC: `hackstream list` shows active sessions; `hackstream stop <id>` terminates the session.
@@ -297,14 +297,14 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 ## MVP Acceptance (Definition of Done)
 
-- End-to-end: First-run prompt for server URL and credentials → launch via desktop icon or CLI → usable remote Chrome in <8s cold-start on a single server.
+- End-to-end: First-run prompt for server URL and credentials → launch via desktop icon or CLI → usable remote Firefox in <8s cold-start on a single server.
 - Security: TLS-only, one-time session tokens, file-transfer disabled by default, RBAC enforced.
 - Observability: Basic metrics, logs, and audit available.
 - Docs: README with setup, ARCHITECTURE and API sketch, CLI and GUI usage examples.
 
 ## Prototype Acceptance (P0 Definition of Done)
 
-- Pi Zero (or equivalent low-RAM device) can attach to a single containerized xpra+Chrome session over a trusted LAN.
+- Pi Zero (or equivalent low-RAM device) can attach to a single containerized xpra+Firefox session over a trusted LAN.
 - Test page loads and is interactable (scroll, type) with acceptable responsiveness.
 - A low-quality preset enables smooth playback/scroll; CPU and RAM usage recorded for both server and client.
 - A short outage test shows the client can resume without restarting the container.
@@ -314,14 +314,14 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 - Provision single Linux host with Docker, Traefik, Postgres, Redis.
 - Deploy Control Plane binary and systemd service; configure local accounts (username/password). OIDC can be added post-MVP.
-- Build and push xpra+Chrome image; configure pre-warmed pool size and quotas.
+- Build and push xpra+Firefox image; configure pre-warmed pool size and quotas.
 - Package client: build a .deb that installs the CLI and GUI wrapper, places a `.desktop` file and icon, and registers an apt repository.
 - Open 443; obtain TLS certs via Let’s Encrypt (Traefik); verify TCP passthrough to sessions.
 - Validate end-to-end from a Raspberry Pi Zero using the desktop icon (GUI) and the CLI with low-quality preset.
 
 ## Operational Runbook (Prototype P0)
 
-- Server: Install Docker on a lab host; build the xpra+Chrome image; run a single container that starts xpra and Chrome; expose a reachable port on the LAN; document the chosen low-quality configuration.
+- Server: Install Docker on a lab host; build the xpra+Firefox image; run a single container that starts xpra and Firefox; expose a reachable port on the LAN; document the chosen low-quality configuration.
 - Client (Raspberry Pi): Install the xpra client; attach to the server’s session endpoint; verify rendering and interaction on a test page; note CPU/RAM and perceived latency.
 - Stability checks: Briefly disrupt the network and confirm the session resumes; ensure container continues running.
 - Scope and safety: Keep testing on a trusted LAN; no authentication or multi-user isolation beyond the single container.
