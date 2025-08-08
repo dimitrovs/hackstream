@@ -14,7 +14,7 @@ echo "Starting Xvfb on display ${DISPLAY}"
 # -screen 0 1920x1080x24: Creates a virtual screen with a resolution of 1920x1080 and 24-bit color.
 # +extension RANDR: Enables the RANDR extension for display resizing.
 # The process is backgrounded with '&'.
-Xvfb ${DISPLAY} -screen 0 1920x1080x24 &
+Xvfb ${DISPLAY} -screen 0 720x720x24 &
 XVFB_PID=$!
 
 # Setup trap to ensure Xvfb is killed on exit or signal

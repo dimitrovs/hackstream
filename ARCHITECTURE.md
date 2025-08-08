@@ -202,15 +202,12 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 - Story P0-1: As an engineer, I can build a Docker image that starts xpra and launches Chrome reliably.
   - AC: Image builds on the target host; entrypoint starts xpra server and Chrome; readiness observable.
+    - **Current State**: A `Dockerfile` and `entrypoint.sh` script have been implemented to achieve this. The Dockerfile installs necessary dependencies (e.g., xpra, Chromium, Xvfb) and sets up a non-root user. The entrypoint script starts Xvfb, launches xpra, and runs the specified application (e.g., Chromium).
 - Story P0-2: As an operator, I can run one container and expose a connection endpoint on the LAN.
   - AC: Container starts on a single server; xpra is reachable within the local network.
 - Story P0-3: As a Raspberry Pi user, I can attach with xpra and load a test URL in Chrome.
   - AC: Pi Zero attaches, renders a test page, and basic interactions (type, scroll, click) are responsive.
-- Story P0-4: As an operator, I can choose a low-quality preset suitable for low bandwidth/CPU.
-  - AC: A documented low-quality configuration yields smooth decode on the Pi with acceptable visual fidelity.
-- Story P0-5: As an operator, I can observe stability under brief network loss.
-  - AC: Client resumes after short interruptions; no container crash; session continues.
-- Story P0-6: As a team, we have a short runbook describing server bring-up and Pi client attachment.
+- Story P0-4: As a team, we have a short runbook describing server bring-up and Pi client attachment.
   - AC: Steps documented; no authentication required; warning that it’s for trusted LAN testing only.
 
 ### Epic 1: Authentication & User Management
