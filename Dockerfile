@@ -29,9 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Create a non-root user to run the application for better security
 # The architecture doc specifies a "non-root with dedicated home directory"
-RUN useradd --create-home --shell /bin/bash appuser \
-    && adduser appuser sudo \
-    && echo "appuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN useradd --create-home --shell /bin/bash appuser
 
 # Set the working directory to the user's home
 WORKDIR /home/appuser
