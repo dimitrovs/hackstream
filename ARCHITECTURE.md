@@ -1,6 +1,6 @@
 # HackStream Architecture and Iterative Delivery Plan
 
-Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberry Pi Zero) to run heavyweight desktop applications remotely. The first use case is a remote browser session (KDE Firefox browser) streamed over a low-latency protocol to the client.
+Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberry Pi Zero) to run heavyweight desktop applications remotely. The first use case is a remote browser session (Firefox browser) streamed over a low-latency protocol to the client.
 
 ## Goals
 
@@ -46,7 +46,7 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 ### 2) Stream Workers (Dockerized session)
 
-- Base image: Linux (e.g., Ubuntu), xpra, Xorg/Xvfb or Wayland, PulseAudio/PipeWire, KDE Firefox browser, fonts/codecs.
+- Base image: Linux (e.g., Ubuntu), xpra, Xorg/Xvfb or Wayland, PulseAudio/PipeWire, Firefox browser, fonts/codecs.
 - xpra configuration:
   - TLS enabled; h264 (nvenc/vaapi if available), fallback to vp9/vpx; webp for stills.
   - Adaptive bitrate/quality; zstd/lz4 for pixels/control streams.
@@ -127,7 +127,7 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 ## Container Image Outline (Firefox + xpra)
 
-- Packages: xpra, Xorg/Xvfb or Wayland compositor, PulseAudio/PipeWire, KDE Firefox browser, fonts, codecs.
+- Packages: xpra, Xorg/Xvfb or Wayland compositor, PulseAudio/PipeWire, Firefox browser, fonts, codecs.
 - Runtime user: non-root with dedicated home directory.
 - Entry point:
   - Start xpra server with TLS and desired encoders.
@@ -151,7 +151,7 @@ Inspired by SlipStream, HackStream enables ultra-low-RAM devices (e.g., Raspberr
 
 - Single-node server using Docker.
 - Basic API with OIDC device flow and local accounts (username/password).
-- Per-session container running xpra + Firefox (KDE browser optimized for containerized environments).
+- Per-session container running xpra + Firefox (browser optimized for containerized environments).
 - TLS via Traefik; one-time session tokens; idle timeout; simple quotas; audit logs.
 - Go CLI wrapper to login, launch, attach, list, and stop sessions.
 - Desktop GUI wrapper for simplified login and session launching.
