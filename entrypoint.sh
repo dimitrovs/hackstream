@@ -23,8 +23,17 @@ cleanup() {
     kill $XVFB_PID 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
-# Wait a moment for Xvfb to initialize.
-sleep 2
+# Wait for Xvfb to be ready by polling for the X11 socket file.
+for i in {1..20}; do
+    if [ -e /tmp/.X11-unix/X${DISPLAY_NUM} ]; then
+        break
+    fi
+    sleep 0.5
+done
+if [ ! -e /tmp/.X11-unix/X${DISPLAY_NUM} ]; then
+    echo "Error: Xvfb did not create the X11 socket file in time." >&2
+    exit 1
+fi
 
 echo "Starting xpra server on display ${DISPLAY} and launching command: $*"
 # Use 'exec' to replace the shell process with the xpra process. This means
