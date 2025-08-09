@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-color-emoji \
     fonts-liberation \
     ttf-bitstream-vera \
+    libpci3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user to run the application for better security
