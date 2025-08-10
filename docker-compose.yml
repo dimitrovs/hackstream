@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   hackstream:
     build: .
@@ -6,3 +6,5 @@ services:
     ports:
       - "14500:14500"
     restart: unless-stopped
+    volumes:
+      - /dev/dri:/dev/dri

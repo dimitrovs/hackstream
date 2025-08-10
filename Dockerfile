@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-liberation \
     ttf-bitstream-vera \
     libpci3 \
+    intel-media-va-driver \
+    intel-gpu-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user to run the application for better security
